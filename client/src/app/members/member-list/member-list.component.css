@@ -1,0 +1,7 @@
+.btn:hover.btn-last-active,.btn:hover.btn-created{
+    color: blue;
+}
+
+.btn:hover.btn-apply-filters,.btn:hover.btn-reset-filters{
+    color: rgba(4, 0, 255, 0.979);
+}
