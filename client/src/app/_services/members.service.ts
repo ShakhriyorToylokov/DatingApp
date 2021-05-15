@@ -1,3 +1,4 @@
+import { LikeParams } from './../_models/likeParams';
 import { AccountService } from './account.service';
 import { UserParams } from './../_models/userParams';
 import { PaginatedResult } from './../_models/pagination';
@@ -8,6 +9,7 @@ import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { of } from 'rxjs';
 import { User } from '../_models/user';
+import { getPaginatedResult, getPaginationHeader } from './paginationHelper';
 
 
 @Injectable({
@@ -20,10 +22,13 @@ export class MembersService {
   baseUrl=environment.apiUrl;
   userParams:UserParams;
   user:User;
+  likeParams:LikeParams;
+  paginatedResult: PaginatedResult<Member[]>=new PaginatedResult<Member[]>();
   constructor(private http: HttpClient,private accountService:AccountService) {
     this.accountService.currentUser$.pipe(take(1)).subscribe(user=>{
       this.user=user;
       this.userParams=new UserParams(user);
+      this.likeParams=new LikeParams();
     })
    }
 
@@ -39,20 +44,34 @@ export class MembersService {
      this.userParams=new UserParams(this.user);
      return this.userParams;
    }
-   
+   getLikeParams(){
+     return this.likeParams;
+   }
+  setLikeParams(params:LikeParams){
+    this.likeParams=params;
+  }   
+  addLike(username:string){
+    return this.http.post(this.baseUrl+'likes/'+ username,{});
+  }
+
+  getLikes(likeParams:LikeParams){
+    let params=getPaginationHeader(likeParams.pageNumber,likeParams.pageSize);
+    params=params.append('predicate',likeParams.predicate);
+    return getPaginatedResult<Partial<Member[]>>(this.baseUrl+'likes',params,this.http);
+  } 
   getMembers(userParams:UserParams){
     var response=this.memberCache.get(Object.values(userParams).join('-'));
     if (response) {
        return of(response);
     }
 
-    let params=this.getPaginationHeader(userParams.pageNumber,userParams.pageSize);
+    let params=getPaginationHeader(userParams.pageNumber,userParams.pageSize);
     params=params.append('minAge',userParams.minAge.toString());
     params=params.append('maxAge',userParams.maxAge.toString());
     params=params.append('gender',userParams.gender);
     params=params.append('orderBy',userParams.orderBy);
 
-    return this.getPaginatedResult<Member[]>(this.baseUrl+'users', params)
+    return getPaginatedResult<Member[]>(this.baseUrl+'users', params,this.http)
     .pipe(map(response=>{
       this.memberCache.set(Object.values(userParams).join('-'),response);
       return response;
@@ -89,23 +108,5 @@ export class MembersService {
     return this.http.delete(this.baseUrl+'users/delete-photo/'+photoId);
   }
 
-  private getPaginatedResult<T>(url,params) {
-    const paginatedResult: PaginatedResult<T>=new PaginatedResult<T>();
-    return this.http.get<T>(url, { observe: 'response', params }).pipe(
-      map(response => {
-        paginatedResult.result = response.body;
-        if (response.headers.get('Pagination') !== null) {
-         paginatedResult.pagination = JSON.parse(response.headers.get('Pagination'));
-        }
-        return paginatedResult;
-      })
-    );
-  }
- 
-  private getPaginationHeader(pageNumber:number, pageSize:number){
-    let params=new HttpParams();
-      params=params.append('pageNumber',pageNumber.toString());
-      params=params.append('pageSize',pageSize.toString());
-      return params;
-  }
+  
 }

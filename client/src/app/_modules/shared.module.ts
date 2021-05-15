@@ -18,12 +18,13 @@ import {TimeagoModule} from 'ngx-timeago';
       positionClass:'toast-bottom-right'
     }),
     TabsModule.forRoot(),
-    NgxGalleryModule ,
+    NgxGalleryModule,
     FileUploadModule,
     BsDatepickerModule.forRoot(),
     PaginationModule.forRoot(),
     ButtonsModule.forRoot(),
-    TimeagoModule.forRoot()
+    TimeagoModule.forRoot(),
+    
   ],
   exports:[
     BsDropdownModule,

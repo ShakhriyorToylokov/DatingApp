@@ -1,12 +1,9 @@
-import { AccountService } from './../../_services/account.service';
 import { User } from 'src/app/_models/user';
 import { UserParams } from './../../_models/userParams';
-import { Observable } from 'rxjs';
 import { MembersService } from './../../_services/members.service';
 import { Member } from './../../_models/member';
 import { Component, OnInit } from '@angular/core';
 import { Pagination } from 'src/app/_models/pagination';
-import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-member-list',
@@ -34,6 +31,8 @@ export class MemberListComponent implements OnInit {
       response=>{
         this.members=response.result;
         this.pagination=response.pagination;
+        console.log(this.pagination);
+        
       }
     )
   }
